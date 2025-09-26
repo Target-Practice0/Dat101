@@ -7,7 +7,21 @@
 <body>
 <script>
   /* write your code below this line  🙂 */
+  "use strict";
+const a = 3;
+let b = a;
+b = 5;
+ c = test(a,b);
 
+function test(valueA, valueB) {valueA = 12; const valueC = valueA + valueB;
+  return valueC;
+}
 </script>
+<h1>Diskusjons spørsmål</h1>
+<p><h3>1.</h3> Du kan deklarere at en variabel har ingen verdi fordi den kan endre seg senere i koden. Men en konstant må ha en verdi når den deklareres fordi den ikke kan endre seg senere i koden.</p>
+<p><h3>2.</h3> Du kan deklarere flere variabler eller konstanter på samme linje ved å skille dem med komma, men du kan ikke blande 'let' og 'const' i samme linje.</p>
+<p><h3>3.</h3> Nei du kan ikke bytte en const etter den er deklarert fordi den er en konstant og dens verdi kan ikke endres.</p>
+<p><h3>4.</h3> Vi får en feilmelding, det er fordi at i "use strict" vil den ikke la deg kjøre uten å deklarere variabelen.</p>
+<p><h3>5.</h3> Når du ikke har deklarert en variabel blir den implicit deklarert som en global variabel og kan føre til uventede feil i koden. Det er best praksis å alltid deklarere variabler med 'let', 'const', eller 'var' for å unngå slike problemer. Disse som er deklarert kalles explicit variabler.</p>
 </body>
 </html>
