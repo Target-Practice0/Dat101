@@ -28,7 +28,11 @@ printOut(newLine);
 
 printOut("--- Part 6 ----------------------------------------------------------------------------------------------");
 /* Put your code below here!*/
-printOut("Replace this with you answer!");
+function part6calculate (GrossAmount, aTaxGroup) 
+const TaxGroup = aTaxGroup.tolowercase();
+
+
+printOut(TaxGroup);
 printOut(newLine);
 
 printOut("--- Part 7 ----------------------------------------------------------------------------------------------");
