@@ -3,13 +3,14 @@ import { printOut, newLine } from "../../common/script/utils.mjs";
 
 printOut("--- Part 1, 2, 3 ----------------------------------------------------------------------------------------");
 
-let wakeUpTime = 6;
-let message;
-if (wakeUpTime < 8) {
-    message = "I woke up at 6 and reached the bus on time!";
-} else {
-    message = "I woke up at 6 and missed the bus and am late to school!";
-}
+let message = "";
+let wakeUpTime = Math.floor(Math.random() * 4) + 6; 
+if (wakeUpTime == 7) { message = "I reached the buss in time"; }
+else if (wakeUpTime == 8) { message = "I missed the buss and have to take the train"; }
+else if (wakeUpTime > 8) { message = "I missed the buss and train, so i have to drive."; }
+else { message = "I am still sleeping."; }
+
+printOut(wakeUpTime);
 printOut(message);
 printOut(newLine);
 
