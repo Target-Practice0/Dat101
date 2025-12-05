@@ -2,12 +2,15 @@
 import { printOut, newLine } from "../../common/script/utils.mjs";
 
 printOut("--- Part 1, 2, 3 ----------------------------------------------------------------------------------------");
-/* Put your code below here!*/
-printOut("Task 1, 2 and 3");
-let wakeUpTime = 2;
-if ("Replace this") {
-  printOut("I can take the bus to school.");
+
+let wakeUpTime = 6;
+let message;
+if (wakeUpTime < 8) {
+    message = "I woke up at 6 and reached the bus on time!";
+} else {
+    message = "I woke up at 6 and missed the bus and am late to school!";
 }
+printOut(message);
 printOut(newLine);
 
 printOut("--- Part 4, 5 --------------------------------------------------------------------------------------------");
