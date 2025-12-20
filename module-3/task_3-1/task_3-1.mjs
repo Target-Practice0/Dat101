@@ -15,8 +15,13 @@ printOut(message);
 printOut(newLine);
 
 printOut("--- Part 4, 5 --------------------------------------------------------------------------------------------");
-/* Put your code below here!*/
-printOut("Replace this with you answer!");
+let message2 = "";
+let number = Math.floor(Math.random() * 100) - 50;
+if (number < 0) { message2 = "The number is negative."; }
+else if (number > 0) { message2 = "The number is positive."; }
+else { message2 = "The number is zero."; }
+
+printOut(number + " " + message2);
 printOut(newLine);
 
 printOut("--- Part 6 ----------------------------------------------------------------------------------------------");
