@@ -44,7 +44,7 @@ printOut(newLine);
 
 printOut("--- Part 8 ----------------------------------------------------------------------------------------------");
 const monthList =["January", "February", "Mars", "April", "Mai",
-"Jun", "Juli", "August", "September", "October", "November", "December"];
+"Jun", "July", "August", "September", "October", "November", "December"];
 const noOfMonth = monthList.length;
 const monthName = monthList[Math.floor(Math.random() * noOfMonth)];
 if (monthName == "September" || monthName == "October" || monthName == "November" || monthName == "December" || monthName == "January" || monthName == "February" || monthName == "Mars" || monthName == "April") {
