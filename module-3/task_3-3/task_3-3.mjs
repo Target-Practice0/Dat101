@@ -53,7 +53,7 @@ function findcircleArea(radius) {
   const area = Math.PI * radius * radius;
   return area;
 }
-let radius = 5;
+let radius = 7;
 let area = findcircleArea(radius);
 
 printOut(`The area of a circle with radius ${radius} is ${area.toFixed(2)}`);
