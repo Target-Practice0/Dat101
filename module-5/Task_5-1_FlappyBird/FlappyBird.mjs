@@ -3,6 +3,7 @@
 import { TSpriteCanvas } from "libSprite";
 import { TBackground } from "./Background.js";
 import { THero } from "./Hero.js";
+import { TObstacle } from "./obstacle.js";
 
 //--------------- Objects and Variables ----------------------------------//
 const chkMuteSound = document.getElementById("chkMuteSound");
@@ -31,16 +32,40 @@ const SpriteInfoList = {
 const EGameStatus = { idle: 0 };
 const background = new TBackground(spcvs, SpriteInfoList);
 const hero = new THero(spcvs, SpriteInfoList.hero1); 
+const obstacles = [];
 
 //--------------- Functions ----------------------------------------------//
+function spawnObstacle(){
+  const obstacle = new TObstacle(spcvs, SpriteInfoList.obstacle);
+  obstacles.push(obstacle);
+  //const nextTime = Math.ceil(Math.random() * 10) + 5;//
+  setTimeout(spawnObstacle, 1500);
+}
+
 function animategame() {
   hero.animate();
+  background.animate();
+  let deleteObstacle = false;
+  for (let i = 0; i < obstacles.length; i++){
+    const obstacle = obstacles[i];
+    obstacle.animate();
+    if (obstacle.x < -50){
+      deleteObstacle = true;
+    }
+  }
+  if (deleteObstacle){
+    obstacles.splice( 0, 1);
+}
 }
 
 function drawgame() {
-  background.draw();
+  background.drawBackground();
   hero.draw();
-}
+for (let i = 0; i < obstacles.length; i++){
+    const obstacle = obstacles[i];
+    obstacle.draw();
+  }  background.drawGround();
+  }
 
 function loadGame() {
   console.log("Game Loaded");
@@ -53,6 +78,7 @@ spcvs.onDraw = drawgame;
 
 // start animate engine
 setInterval(animategame, 10);
+setTimeout(spawnObstacle, 500);
 
 } // end of loadGame
 
