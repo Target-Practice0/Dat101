@@ -4,6 +4,8 @@ import { TSpriteCanvas } from "libSprite";
 import { TBackground } from "./Background.js";
 import { THero } from "./Hero.js";
 import { TObstacle } from "./obstacle.js";
+import { TBait } from "./Bait.js";
+import { TMenu } from "./menu.js";
 
 //--------------- Objects and Variables ----------------------------------//
 const chkMuteSound = document.getElementById("chkMuteSound");
@@ -29,21 +31,56 @@ const SpriteInfoList = {
   medal:        { x: 985 , y: 635 , width: 44   , height: 44  , count: 4  },
 };
 
-const EGameStatus = { idle: 0 };
+export const EGameStatus = { idle: 0, gaming: 1, heroIsDead: 2, gameOver: 3, 
+  state: 0 };
 const background = new TBackground(spcvs, SpriteInfoList);
-const hero = new THero(spcvs, SpriteInfoList.hero1); 
+export const hero = new THero(spcvs, SpriteInfoList.hero1);
 const obstacles = [];
+const baits = [];
+const menu = new TMenu(spcvs, SpriteInfoList);
 
 //--------------- Functions ----------------------------------------------//
+export function startGame(){
+  EGameStatus.state = EGameStatus.gaming;
+  setInterval(spawnBait, 1000);
+  setTimeout(spawnObstacle, 500);
+}
+
+function spawnBait(){
+  if (EGameStatus.state === EGameStatus.gaming) {
+  const bait = new TBait(spcvs, SpriteInfoList.food);
+  baits.push(bait);
+  const nextTime = Math.ceil(Math.random() * 3) + 1;
+  setTimeout(spawnBait, nextTime * 1000);
+  }
+}
+
 function spawnObstacle(){
+  if (EGameStatus.state === EGameStatus.gaming) {
   const obstacle = new TObstacle(spcvs, SpriteInfoList.obstacle);
   obstacles.push(obstacle);
   //const nextTime = Math.ceil(Math.random() * 10) + 5;//
   setTimeout(spawnObstacle, 1500);
+  }
 }
 
 function animategame() {
   hero.animate();
+  let eaten = -1;
+  for(let i = 0; i < baits.length; i++){
+    const bait = baits[i];
+    bait.animate();
+    if (bait.distanceTo(hero.center) < 30){
+      eaten = i;
+    }
+  }
+  
+  if (eaten >= 0){
+    console.log("bait eaten!");
+    baits.splice(eaten, 1);
+  }
+
+  if (EGameStatus.state === EGameStatus.gaming) {
   background.animate();
   let deleteObstacle = false;
   for (let i = 0; i < obstacles.length; i++){
@@ -57,14 +94,21 @@ function animategame() {
     obstacles.splice( 0, 1);
 }
 }
+}
 
 function drawgame() {
   background.drawBackground();
-  hero.draw();
+  for(let i = 0; i < baits.length; i++){
+    const bait = baits[i];
+    bait.draw();
+  }
 for (let i = 0; i < obstacles.length; i++){
     const obstacle = obstacles[i];
     obstacle.draw();
-  }  background.drawGround();
+  } 
+  hero.draw();
+  background.drawGround();
+  menu.draw();
   }
 
 function loadGame() {
@@ -78,7 +122,7 @@ spcvs.onDraw = drawgame;
 
 // start animate engine
 setInterval(animategame, 10);
-setTimeout(spawnObstacle, 500);
+
 
 } // end of loadGame
 

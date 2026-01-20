@@ -1,30 +1,43 @@
 "use strict";
 import { TSprite } from "libSprite";
+import { EGameStatus } from "./FlappyBird.mjs";
+import { TSineWave } from "lib2d";
 
-export class THero extends TSprite{
-    #gravity;
-    #speed;
-    constructor(aSpcsv, aSPI,){
-        super(aSpcsv, aSPI, 150, 200);
-        this.animationSpeed = 15;
-        this.#gravity = 0.1;
-        this.#speed = 0;
-    }
+export class THero extends TSprite {
+  #gravity;
+  #speed;
+  #wave;
+  constructor(aSpcvs, aSPI) {
+    super(aSpcvs, aSPI, 100, 100);
+    this.animationSpeed = 20;
+    this.#gravity = 9.81 / 100;
+    this.#speed = 0;
+    this.#wave = new TSineWave(1, 1);
+    this.y += this.#wave.value;
+    this.debug = false;
+  }
 
-    animate() {
-        if (this.y < 400 - this.height) {
-            this.#speed += this.#gravity;
-            this.y += this.#speed;
-            if (this.rotation < 90) {
-            this.rotation = this.#speed * 20;
-         }
-    }
-    }
-
-    flap() {
-        this.#speed = -4.5;
-        if (this.rotation > 0) {
-            this.rotation = 0;
+  animate() {
+    const hasGravity = (EGameStatus.state === EGameStatus.gaming) || (EGameStatus.state === EGameStatus.heroIsDead);
+    if (hasGravity) {
+      if (this.y < 400 - this.height) {
+        this.#speed += this.#gravity; // increase speed due to gravity
+        this.y += this.#speed; // update position based on speed
+        if (this.rotation < 90) {
+          // limit max rotation
+          this.rotation = this.#speed * 25; // tilt down based on speed
         }
+      } else {
+        EGameStatus.state = EGameStatus.gameOver;
+        this.animationSpeed = 0;
+      }
+    } else if (EGameStatus.state === EGameStatus.idle) {
+      this.y += this.#wave.value;
     }
+  }
+
+  flap() {
+    this.#speed = -3.5;
+    this.rotation = 0;
+  }
 }
