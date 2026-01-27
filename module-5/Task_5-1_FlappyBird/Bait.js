@@ -8,7 +8,7 @@ export class TBait extends TSprite {
   #wave;
   constructor(aSpcvs, aSPI) {
     super(aSpcvs, aSPI, 200, 0);
-    const amp = Math.ceil(Math.random() * 3);
+    const amp = Math.ceil(Math.random() * 1);
     this.#wave = new TSineWave(amp, 1);
     this.#speed = Math.ceil(Math.random() * 10) / 10;
     this.y += this.#wave.value;

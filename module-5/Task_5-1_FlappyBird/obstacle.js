@@ -1,6 +1,7 @@
 "use strict";
 import { TSprite } from "libSprite";
 import { hero, EGameStatus } from "./FlappyBird.mjs";
+import { menu } from "./FlappyBird.mjs";
 
 const EasyFlyerGap = 140;
 const HardFlyerGap = 140;
@@ -37,6 +38,10 @@ this.#spi = aSPI;
         return this.#spDown.x;
     }
 
+    get width(){
+        return this.#spDown.width;
+    }
+
     draw(){
         this.#spDown.draw();
         this.#spUp.draw();
@@ -50,6 +55,7 @@ this.#spi = aSPI;
             EGameStatus.state = EGameStatus.heroIsDead;
             hero.animationSpeed = 0;
             hero.flap();
+            hero.dead();
             
         }
     }

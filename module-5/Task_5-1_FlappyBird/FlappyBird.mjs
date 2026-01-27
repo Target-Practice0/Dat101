@@ -37,7 +37,8 @@ const background = new TBackground(spcvs, SpriteInfoList);
 export const hero = new THero(spcvs, SpriteInfoList.hero1);
 const obstacles = [];
 const baits = [];
-const menu = new TMenu(spcvs, SpriteInfoList);
+export const menu = new TMenu(spcvs, SpriteInfoList);
+let obstaclesPassed = false;
 
 //--------------- Functions ----------------------------------------------//
 export function startGame(){
@@ -60,7 +61,7 @@ function spawnObstacle(){
   const obstacle = new TObstacle(spcvs, SpriteInfoList.obstacle);
   obstacles.push(obstacle);
   //const nextTime = Math.ceil(Math.random() * 10) + 5;//
-  setTimeout(spawnObstacle, 1500);
+  setTimeout(spawnObstacle, 2000);
   }
 }
 
@@ -78,6 +79,7 @@ function animategame() {
   if (eaten >= 0){
     console.log("bait eaten!");
     baits.splice(eaten, 1);
+    hero.eat();
   }
 
   if (EGameStatus.state === EGameStatus.gaming) {
@@ -88,7 +90,15 @@ function animategame() {
     obstacle.animate();
     if (obstacle.x < -50){
       deleteObstacle = true;
+      obstaclesPassed = false;
     }
+    else if (obstacle.x + obstacle.width < hero.x) {
+      if (!obstaclesPassed){
+     menu.incGameScore(1);
+     obstaclesPassed = true;
+    }
+  }
+  
   }
   if (deleteObstacle){
     obstacles.splice( 0, 1);
