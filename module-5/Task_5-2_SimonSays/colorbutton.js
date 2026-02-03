@@ -1,6 +1,8 @@
 "use strict"
 import { TSpriteButton } from "libSprite";
 import { EOctave, ENoteName, Notes, TSoundWave } from "libSound";
+import { testOfUserInput } from "./sequence.js";
+import { EGameStatusType } from "./SimonSays.mjs";
 
 export class TColorButton extends TSpriteButton{ 
   #dst;
@@ -42,6 +44,9 @@ export class TColorButton extends TSpriteButton{
     if(this.#sound){
       this.#sound.stop();
     }
+    if(EGameStatusType.state === EGameStatusType.Gamer){
+    testOfUserInput(this);
+  }
   }
 
   createSound(aIndex){
@@ -60,4 +65,3 @@ export class TColorButton extends TSpriteButton{
     this.#sound = new TSoundWave(EOctave.Octave5, note);
   }
 }
-
