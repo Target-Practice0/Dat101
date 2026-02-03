@@ -43,18 +43,18 @@ let obstaclesPassed = false;
 //--------------- Functions ----------------------------------------------//
 export function startGame(){
   EGameStatus.state = EGameStatus.gaming;
-  setInterval(spawnBait, 1000);
+  /*setInterval(spawnBait, 1000);*/
   setTimeout(spawnObstacle, 500);
 }
 
-function spawnBait(){
+/*function spawnBait(){
   if (EGameStatus.state === EGameStatus.gaming) {
   const bait = new TBait(spcvs, SpriteInfoList.food);
   baits.push(bait);
   const nextTime = Math.ceil(Math.random() * 3) + 1;
   setTimeout(spawnBait, nextTime * 1000);
   }
-}
+}*/
 
 function spawnObstacle(){
   if (EGameStatus.state === EGameStatus.gaming) {
