@@ -3,13 +3,14 @@ import { TPoint, TCircle } from "lib2d";
 import { ESpriteNumberJustifyType, TSprite, TSpriteButton, TSpriteNumber } from "libSprite";
 import { TColorButton } from "./colorButton.js";
 import { activateAudioContext } from "libSound";
-import { spawnColorButton } from "./SimonSays.mjs";
+import { EGameStatusType, spawnColorButton, resetGame } from "./SimonSays.mjs";
 import { round } from "./sequence.js";
 
 export class TGameBoard extends TSprite {
   #colorButtons;
   #gameInfo;
   #isSoundEnabled;
+  #spFinalScore;
   constructor(aSpcvs, aSPI) {
     super(aSpcvs, aSPI.Background, 0, 0);
     const center = new TPoint(aSPI.Background.width / 2, aSPI.Background.height / 2);
@@ -27,6 +28,8 @@ export class TGameBoard extends TSprite {
     this.spRound = new TSpriteNumber(aSpcvs, aSPI.number, 405, 385);
     this.spRound.justify = ESpriteNumberJustifyType.Right;
     this.spRound.value = round;
+    this.#spFinalScore = new TSpriteNumber(aSpcvs, aSPI.number, 370, 450);
+    this.#spFinalScore.justify = ESpriteNumberJustifyType.Right;
   }
 
   get colorButtons() {
@@ -38,6 +41,7 @@ export class TGameBoard extends TSprite {
     this.#gameInfo.index = 1;
     this.#gameInfo.hidden = false;
     this.#gameInfo.disabled = false;
+    this.#spFinalScore.value = round;
   }
 
   draw() {
@@ -48,6 +52,9 @@ export class TGameBoard extends TSprite {
     }
     this.spRound.draw();
     this.#gameInfo.draw();
+    if (EGameStatusType.state === EGameStatusType.GameOver) {
+      this.#spFinalScore.draw();
+    }
   }
 
   #disableColorButtons(aDisable) {
@@ -69,6 +76,7 @@ export class TGameBoard extends TSprite {
         colorButton.createSound(i);
       }
     }
+    resetGame();
     spawnColorButton();
   }
 }

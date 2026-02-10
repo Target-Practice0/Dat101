@@ -1,5 +1,5 @@
 "use strict";
-import { EGameStatusType, spawnColorButton, gameOver } from "./SimonSays.mjs";
+import { EGameStatusType, spawnColorButton, gameOver, updateRound } from "./SimonSays.mjs";
 
 let colorButton = null;
 let sequence = [];
@@ -24,6 +24,7 @@ export function testOfUserInput(aColorButton) {
     } else {
       console.log("Round " + round + " completed");
       round++;
+      updateRound(round);
       spawnColorButton();
     }
   } else {
@@ -48,4 +49,10 @@ function setButtonUp() {
     seqIndex = 0;
     colorButton = sequence[0];
   }
+}
+
+export function resetSequence() {
+  sequence = [];
+  seqIndex = 0;
+  round = 0;
 }

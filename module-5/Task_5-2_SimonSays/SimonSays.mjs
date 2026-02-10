@@ -2,7 +2,7 @@
 //--------------- Objects and Variables ----------------------------------//
 import { TSpriteCanvas } from "libSprite";
 import { TGameBoard } from "./gameBoard.js";
-import { addRandomButton, round } from "./sequence.js";
+import { addRandomButton, round, resetSequence } from "./sequence.js";
 
 // prettier-ignore
 export const SpriteInfoList = {
@@ -24,6 +24,16 @@ export const EGameStatusType = { Idle: 0, Computer: 1, Gamer: 2, GameOver: 3 };
 export const gameProps = {};
 
 //--------------- Functions ----------------------------------------------//
+export function resetGame() {
+  resetSequence();
+  EGameStatusType.state = EGameStatusType.Idle; 
+  updateRound(round);
+}
+
+export function updateRound(aRound) {
+  gameBoard.spRound.value = aRound;
+}
+
 export function gameOver() {
   EGameStatusType.state = EGameStatusType.GameOver;
   console.log("Game Over! You reached round " + round);
