@@ -11,24 +11,32 @@ let mousePos = new TPoint();
 let shape = null;
 let shapes = [];
 
-const paintObjectListOptions = '<div id="divPaintObject" class="paintObject">Shape-1</div>';
+const paintObjectListOption = '<div id="divPaintObject" class="paintObject">Shape-1</div>';
 const paintObjectList = document.getElementById("paintObjectList");
 
+let shapeNo = 0;
+let selectedHtmlShape = null;
+
 class TShape {
-  constructor(aX, aY) {
+  #name;
+  constructor(aX, aY, aName) {
     this.posStart = new TPoint(aX, aY);
     this.posEnd = null;
     this.lineWidth = newShapeType.StrokeSize;
     this.strokeStyle = newShapeType.StrokeColor;
     this.fillStyle = newShapeType.FillColor;
+    this.#name = aName;
+    this.htmlID = `shape-${shapeNo++}`;
   }
 
   setEndPos(aX, aY) {
     this.posEnd = new TPoint(aX, aY);
     const div = document.createElement("div");
-    div.name = "paint-shape-object";
+    div.name = "paint-shape-obj";
     div.classList.add("paintObject");
-    div.appendChild(document.createTextNode("Shape"));
+    div.id = this.htmlID;
+    div.onclick = selectShape;
+    div.appendChild(document.createTextNode(this.#name));
     paintObjectList.appendChild(div);
   }
 
@@ -36,12 +44,12 @@ class TShape {
     ctxPaint.lineWidth = this.lineWidth;
     ctxPaint.strokeStyle = this.strokeStyle;
     ctxPaint.fillStyle = this.fillStyle;
-  } // polymorphic
+  } //Polymorphic
 } // End of TShape
 
 export class TLineShape extends TShape {
   constructor(aX, aY) {
-    super(aX, aY);
+    super(aX, aY, "Line");
   }
 
   draw() {
@@ -60,7 +68,7 @@ export class TLineShape extends TShape {
 export class TCircleShape extends TShape {
   #radius;
   constructor(aX, aY) {
-    super(aX, aY);
+    super(aX, aY, "Circle");
     this.#radius = 0;
   }
   draw() {
@@ -88,7 +96,7 @@ export class TEllipseShape extends TShape {
   #radius1;
   #radius2;
   constructor(aX, aY) {
-    super(aX, aY);
+    super(aX, aY, "Ellipse");
     this.#radius1 = 0;
     this.#radius2 = 0;
   }
@@ -117,7 +125,7 @@ export class TRectangleShape extends TShape {
   #width;
   #height;
   constructor(aX, aY) {
-    super(aX, aY);
+    super(aX, aY, "Rectangle");
     this.#width = 0;
     this.#height = 0;
   }
@@ -135,15 +143,15 @@ export class TRectangleShape extends TShape {
   }
 
   #calcSize() {
-    this.#width = Math.round(mousePos.x - this.posStart.x);
-    this.#height = Math.round(mousePos.y - this.posStart.y);
+    this.#width = mousePos.x - this.posStart.x;
+    this.#height = mousePos.y - this.posStart.y;
   }
 } // End of TRectangleShape
 
 export class TPenShape extends TShape {
   #points;
   constructor(aX, aY) {
-    super(aX, aY);
+    super(aX, aY, "Pen");
     this.#points = [];
   }
 
@@ -158,8 +166,8 @@ export class TPenShape extends TShape {
     ctxPaint.moveTo(this.posStart.x, this.posStart.y);
 
     for (let i = 0; i < this.#points.length; i++) {
-      const point = this.#points[i];
-      ctxPaint.lineTo(point.x, point.y);
+      const pos = this.#points[i];
+      ctxPaint.lineTo(pos.x, pos.y);
     }
 
     if (this.posEnd) {
@@ -172,7 +180,7 @@ export class TPenShape extends TShape {
 export class TPolygonShape extends TShape {
   #points;
   constructor(aX, aY) {
-    super(aX, aY);
+    super(aX, aY, "Polygon");
     this.#points = [];
     this.snap = false;
   }
@@ -188,15 +196,8 @@ export class TPolygonShape extends TShape {
     ctxPaint.moveTo(this.posStart.x, this.posStart.y);
 
     for (let i = 0; i < this.#points.length; i++) {
-      const point = this.#points[i];
-      ctxPaint.lineTo(point.x, point.y);
-    }
-
-    if (this.posEnd) {
-      ctxPaint.lineTo(this.posEnd.x, this.posEnd.y);
-    } else {
-      // rubber banding effect for the last line segment
-      ctxPaint.lineTo(mousePos.x, mousePos.y);
+      const pos = this.#points[i];
+      ctxPaint.lineTo(pos.x, pos.y);
     }
 
     if (this.posEnd) {
@@ -205,7 +206,6 @@ export class TPolygonShape extends TShape {
     } else {
       ctxPaint.lineTo(mousePos.x, mousePos.y);
     }
-
     ctxPaint.stroke();
   }
 } // End of TPolygonShape
@@ -215,14 +215,14 @@ function updateMousePos(aEvent) {
   mousePos.x = Math.round(aEvent.clientX - rect.left);
   mousePos.y = Math.round(aEvent.clientY - rect.top);
   if (shape !== null) {
-    if (newShapeType.ShapeType === EShapeType.pen) {
+    if (newShapeType.ShapeType === EShapeType.Pen) {
       shape.addPos(mousePos.x, mousePos.y);
     } else if (newShapeType.ShapeType === EShapeType.Polygon) {
       if (shape.posEnd === null) {
         const dx = shape.posStart.x - mousePos.x;
         const dy = shape.posStart.y - mousePos.y;
         const hyp = Math.hypot(dx, dy);
-        if (hyp < 10) {
+        if (hyp <= 10) {
           mousePos.x = shape.posStart.x;
           mousePos.y = shape.posStart.y;
           shape.snap = true;
@@ -250,19 +250,23 @@ function mouseDown(aEvent) {
       case EShapeType.Rectangle:
         shape = new TRectangleShape(mousePos.x, mousePos.y);
         break;
-      case EShapeType.pen:
+      case EShapeType.Pen:
         shape = new TPenShape(mousePos.x, mousePos.y);
         break;
       case EShapeType.Polygon:
         shape = new TPolygonShape(mousePos.x, mousePos.y);
+        break;
     }
-  } else if (newShapeType.ShapeType === EShapeType.Polygon) {
-    if (shape.snap) {
-      shape.setEndPos(mousePos.x, mousePos.y);
-      shapes.push(shape);
-      shape = null;
-    } else {
-      shape.addPos(mousePos.x, mousePos.y);
+  } else {
+    // Test if we are creating a new polygon, if true, add mouse position.
+    if (newShapeType.ShapeType === EShapeType.Polygon) {
+      if (shape.snap) {
+        shape.setEndPos(mousePos.x, mousePos.y);
+        shapes.push(shape);
+        shape = null;
+      } else {
+        shape.addPos(mousePos.x, mousePos.y);
+      }
     }
   }
 }
@@ -291,6 +295,73 @@ function drawCanvas() {
     shape.draw();
   }
   requestAnimationFrame(drawCanvas);
+}
+
+export function newDrawing() {
+  paintObjectList.innerHTML = "";
+  shapes = [];
+}
+
+export function deleteShape() {
+  let index = -1;
+  for (let i = 0; i < shapes.length; i++) {
+    const shape = shapes[i];
+    if (shape.htmlID === selectedHtmlShape.id) {
+      index = i;
+      break; // This breaks the for-loop
+    }
+  }
+  if (index >= 0) {
+    shapes.splice(index, 1);
+    paintObjectList.removeChild(selectedHtmlShape);
+    selectedHtmlShape = null;
+  }
+}
+
+export function moveUp() {
+  let index = -1;
+  let shape = null;
+  for(let i = 0; i < shapes.length; i++){
+    shape = shapes[i];
+    if(shape.htmlID === selectedHtmlShape.id){
+      index = i;
+      break;
+    }
+  }
+  if(index > 0){
+    shapes.splice(index, 1);
+    shapes.splice(index - 1, 0, shape);
+    const previous = selectedHtmlShape.previousSibling;
+    paintObjectList.insertBefore(selectedHtmlShape,previous);
+  }
+}
+
+export function moveDown() {
+  let index = -1;
+  let shape = null;
+  for(let i = 0; i < shapes.length; i++){
+    shape = shapes[i];
+    if(shape.htmlID === selectedHtmlShape.id){
+      index = i;
+      break;
+    }
+  }
+  if(index < shapes.length - 1){
+    shapes.splice(index, 1);
+    shapes.splice(index + 1, 0, shape);
+    const next = selectedHtmlShape.nextSibling;
+    paintObjectList.insertBefore(next,selectedHtmlShape);
+  }
+
+}
+
+function selectShape(aEvent) {
+  console.log(aEvent.target.id);
+  if (selectedHtmlShape) {
+    selectedHtmlShape.classList.remove("selected");
+  }
+  selectedHtmlShape = aEvent.target;
+  selectedHtmlShape.classList.add("selected");
 }
 
 cvsPaint.addEventListener("mousedown", mouseDown);
