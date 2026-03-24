@@ -1,6 +1,6 @@
 "use strict";
 import { computerAnswers, menu } from "./Mastermind.mjs";
-import { playerAnswers } from "./colorPicker";
+import { playerAnswers } from "./colorPicker.js";
 
 export function checkAnswer() {
   const c = [];
@@ -20,10 +20,27 @@ export function checkAnswer() {
   }
   // we need to remove the correct answers from the list p and c
   for (let i = 0; i < correct.length; i++) {
-    p.splice(correct[i], 1);
-    c.splice(correct[i], 1);
+    p[correct[i]] = null;
+    c[correct[i]] = null;
   }
-  menu.createHints(correct.length, 0);
-
   // 2. Test if color "p" is correct but wrongly placed.
+  let wrongCount = 0;
+  for (let i = 0; i < p.length; i++) {
+    const pColor = p[i];
+    let wrongIndex = -1;
+    for (let j = 0; j < c.length; j++) {
+      const cColor = c[j];
+      if (pColor && cColor && pColor.index === cColor.index) {
+        // we found a correct color, but wrongly placed
+        wrongCount++;
+        wrongIndex = j;
+        break;
+      }
+    }
+    if (wrongIndex >= 0) {
+      c.splice(wrongIndex, 1);
+      i = 0;
+    }
+  }
+  menu.createHints(correct.length, wrongCount);
 }

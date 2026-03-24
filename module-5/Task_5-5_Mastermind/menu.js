@@ -2,6 +2,7 @@
 import { newGame, spcvs, SpriteInfoList } from "./Mastermind.mjs";
 import { MastermindBoard } from "./MastermindBoard.mjs";
 import { TSprite, TSpriteButtonHaptic } from "libSprite";
+import { checkAnswer } from "./checkAnswer.js";
 /*
 1. Importer MastermindBard
 2. Lag en klasse TMenu
@@ -9,6 +10,8 @@ import { TSprite, TSpriteButtonHaptic } from "libSprite";
 4. Lag alle meny elementene
 5. Lag to tegne funksjoner: draw, drawBackground
 */
+
+let hintRow = MastermindBoard.AnswerHint.Row1; // we will update this to the correct row when the player submits an answer
 export class TMenu {
   #background;
   #newGame;
@@ -40,7 +43,7 @@ export class TMenu {
   }
 
   #checkAnswerOnClick() {
-    // TODO: Check player answer!
+    checkAnswer();
   }
 
   #newGameOnClick() {
@@ -71,16 +74,27 @@ export class TMenu {
   }
 
   createHints(aCorrectCount, aWrongCount) {
+    console.log("Creating hints: " + aCorrectCount + " correct, " + aWrongCount + " wrong");
     // create a black hint peg for each correct color in the correct place
-    for (let i = 0; i < aCorrectCount; i++) {
-      const hintPeg = new TSprite(spcvs, SpriteInfoList.HintBlack, 0, 0);
-      this.#hints.push(hintPeg);
-    }
     // create a white hint peg for each correct color in the wrong place
-    for (let i = 0; i < aWrongCount; i++) {
-      const hintPeg = new TSprite(spcvs, SpriteInfoList.HintWhite, 0, 0);
-      this.#hints.push(hintPeg);   
-      // push this to hints.
+    // push this to hints.
+    let hintIndex = 0;
+    for (let i = 0; i < aCorrectCount; i++) {
+      const pos = hintRow[hintIndex];
+      const blackPeg = new TSprite(spcvs, SpriteInfoList.ColorHint, pos.x, pos.y);
+      blackPeg.index = 1;
+      this.#hints.push(blackPeg);
+      hintIndex++;
+      console.log(hintIndex);
     }
-  } // End of TMenu
-}
+
+    for (let i = 0; i < aWrongCount; i++) {
+      const pos = hintRow[hintIndex];
+      const whitePeg = new TSprite(spcvs, SpriteInfoList.ColorHint, pos.x, pos.y);
+      whitePeg.index = 0;
+      this.#hints.push(whitePeg);
+      hintIndex++;
+      console.log(hintIndex);
+    }
+  } 
+} // End of TMenu
