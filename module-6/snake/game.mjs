@@ -3,10 +3,11 @@
 //-----------------------------------------------------------------------------------------
 //----------- Import modules, mjs files  ---------------------------------------------------
 //-----------------------------------------------------------------------------------------
-import { TSpriteCanvas } from "libSprite";
-import { TGameBoard, GameBoardSize, TBoardCell } from "./gameBoard.js";
+import { TSpriteCanvas, TSpriteNumber, ESpriteNumberJustifyType } from "libSprite";
+import { TGameBoard, GameBoardSize, TBoardCell, EBoardCellInfoType } from "./gameBoard.js";
 import { TSnake, EDirection } from "./snake.js";
 import { TBait } from "./bait.js";
+import { TMenu } from "./menu.js";
 
 //-----------------------------------------------------------------------------------------
 //----------- variables and object --------------------------------------------------------
@@ -36,6 +37,11 @@ export const GameProps = {
   gameStatus: EGameStatus.Idle,
   snake: null,
   bait: null,
+  menu: null,
+  score: 0,
+  potentialScore: 100,
+  currentScoreNumber: null,
+  potentialScoreNumber: null,
 };
 
 //------------------------------------------------------------------------------------------
@@ -46,13 +52,36 @@ export function newGame() {
   GameProps.gameBoard = new TGameBoard();
   GameProps.snake = new TSnake(spcvs, new TBoardCell(5, 5)); // Initialize snake with a starting position
   GameProps.bait = new TBait(spcvs); // Initialize bait with a starting position
+  GameProps.score = 0; // Reset score
+  GameProps.potentialScore = 100;
+  if (GameProps.menu) {
+    GameProps.menu.setScore(GameProps.score);
+  }
+  if (GameProps.currentScoreNumber) {
+    GameProps.currentScoreNumber.value = GameProps.score;
+  }
+  if (GameProps.potentialScoreNumber) {
+    GameProps.potentialScoreNumber.value = GameProps.potentialScore;
+  }
   gameSpeed = 4; // Reset game speed
+  GameProps.gameBoard.getCell(5, 3).infoType = EBoardCellInfoType.Empty; // set the starting position of the tail to the snake on the game board to empty
 }
 
 export function baitIsEaten() {
   GameProps.bait.update(); // Move the bait to a new random position
+  GameProps.snake.grow(); // Grow the snake
+  GameProps.score += GameProps.potentialScore;
+  GameProps.potentialScore = 100;
+  if (GameProps.menu) {
+    GameProps.menu.setScore(GameProps.score);
+  }
+  if (GameProps.currentScoreNumber) {
+    GameProps.currentScoreNumber.value = GameProps.score;
+  }
+  if (GameProps.potentialScoreNumber) {
+    GameProps.potentialScoreNumber.value = GameProps.potentialScore;
+  }
   console.log("Bait eaten!");
-  /* Logic to increase the snake size and score when bait is eaten */
 
   increaseGameSpeed(); // Increase game speed
 }
@@ -61,15 +90,22 @@ export function baitIsEaten() {
 //----------- functions -------------------------------------------------------------------
 //------------------------------------------------------------------------------------------
 
-function loadGame() {
+export function loadGame() {
   cvs.width = GameBoardSize.Cols * SheetData.Head.width;
   cvs.height = GameBoardSize.Rows * SheetData.Head.height;
 
-  GameProps.gameStatus = EGameStatus.Playing; // change game status to Idle
+  GameProps.gameStatus = EGameStatus.Idle;
 
-  /* Create the game menu here */
+  GameProps.menu = new TMenu(spcvs);
 
-  newGame(); // Call this function from the menu to start a new game, remove this line when the menu is ready
+  GameProps.currentScoreNumber = new TSpriteNumber(spcvs, SheetData.Number, 10, 10, 0, 4, ESpriteNumberJustifyType.Left);
+  GameProps.potentialScoreNumber = new TSpriteNumber(spcvs, SheetData.Number, 10, 100, 100, 3, ESpriteNumberJustifyType.Left);
+  GameProps.currentScoreNumber.alpha = 0.5;
+  GameProps.potentialScoreNumber.alpha = 0.5;
+
+  newGame(); // Initialize the game objects
+
+  GameProps.gameStatus = EGameStatus.Idle; // Show menu initially
 
   requestAnimationFrame(drawGame);
   console.log("Game canvas is rendering!");
@@ -81,13 +117,20 @@ function drawGame() {
   // Clear the canvas
   spcvs.clearCanvas();
 
-  switch (GameProps.gameStatus) {
-    case EGameStatus.Playing:
-    case EGameStatus.Pause:
-      GameProps.bait.draw();
-      GameProps.snake.draw();
-      break;
+  if (GameProps.gameStatus === EGameStatus.Playing || GameProps.gameStatus === EGameStatus.Pause) {
+    GameProps.bait.draw();
+    GameProps.snake.draw();
   }
+
+  if (GameProps.gameStatus !== EGameStatus.Idle) {
+    GameProps.currentScoreNumber.draw();
+    GameProps.potentialScoreNumber.draw();
+  }
+
+  if (GameProps.gameStatus !== EGameStatus.Playing) {
+    GameProps.menu.draw();
+  }
+
   // Request the next frame
   requestAnimationFrame(drawGame);
 }
@@ -96,8 +139,13 @@ function updateGame() {
   // Update game logic here
   switch (GameProps.gameStatus) {
     case EGameStatus.Playing:
+      GameProps.potentialScore = Math.max(0, GameProps.potentialScore - 1); // Decrease potential score over time, minimum 0
+      if (GameProps.potentialScoreNumber) {
+        GameProps.potentialScoreNumber.value = GameProps.potentialScore;
+      }
       if (!GameProps.snake.update()) {
         GameProps.gameStatus = EGameStatus.GameOver;
+        GameProps.menu.setStatus(EGameStatus.GameOver);
         console.log("Game over!");
       }
       break;
@@ -105,7 +153,7 @@ function updateGame() {
 }
 
 function increaseGameSpeed() {
-  gameSpeed += 0.5; // Increase game speed by 0.5
+  gameSpeed += 0.25; // Increase game speed by 0.25
   clearInterval(hndUpdateGame); // Clear the existing interval
   hndUpdateGame = setInterval(updateGame, 1000 / gameSpeed); // Set a new interval with the updated game speed
   console.log("Increase game speed!");
@@ -131,13 +179,57 @@ function onKeyDown(event) {
       GameProps.snake.setDirection(EDirection.Right);
       break;
     case " ":
-      console.log("Space key pressed!");
-      /* Pause the game logic here */
-
+      if (GameProps.gameStatus === EGameStatus.Playing) {
+        GameProps.gameStatus = EGameStatus.Pause;
+        GameProps.menu.setStatus(EGameStatus.Pause);
+        console.log("Game paused!");
+      } else if (GameProps.gameStatus === EGameStatus.Pause) {
+        GameProps.gameStatus = EGameStatus.Playing;
+        GameProps.menu.setStatus(EGameStatus.Playing);
+        console.log("Game resumed!");
+      }
       break;
     default:
       console.log(`Key pressed: "${event.key}"`);
   }
+}
+
+function onCanvasClick(event) {
+  // Get the mouse position relative to the canvas
+  const rect = cvs.getBoundingClientRect();
+  const scaleX = cvs.width / rect.width;
+  const scaleY = cvs.height / rect.height;
+  const mouseX = (event.clientX - rect.left) * scaleX;
+  const mouseY = (event.clientY - rect.top) * scaleY;
+  switch (GameProps.gameStatus) {
+    case EGameStatus.Idle:
+      if (isClickOnButton(mouseX, mouseY, GameProps.menu.playButton)) {
+        newGame();
+        GameProps.gameStatus = EGameStatus.Playing;
+        GameProps.menu.setStatus(EGameStatus.Playing);
+      }
+      break;
+    case EGameStatus.Pause:
+      if (isClickOnButton(mouseX, mouseY, GameProps.menu.resumeButton)) {
+        GameProps.gameStatus = EGameStatus.Playing;
+        GameProps.menu.setStatus(EGameStatus.Playing);
+      }
+      break;
+    case EGameStatus.GameOver:
+      if (isClickOnButton(mouseX, mouseY, GameProps.menu.homeButton)) {
+        GameProps.gameStatus = EGameStatus.Idle;
+        GameProps.menu.setStatus(EGameStatus.Idle);
+      } else if (isClickOnButton(mouseX, mouseY, GameProps.menu.retryButton)) {
+        newGame();
+        GameProps.gameStatus = EGameStatus.Playing;
+        GameProps.menu.setStatus(EGameStatus.Playing);
+      }
+      break;
+  }
+}
+
+function isClickOnButton(x, y, button) {
+  return x >= button.x && x <= button.x + button.spi.width && y >= button.y && y <= button.y + button.spi.height;
 }
 //-----------------------------------------------------------------------------------------
 //----------- main -----------------------------------------------------------------------
@@ -145,3 +237,4 @@ function onKeyDown(event) {
 
 spcvs.loadSpriteImage("./Media/spriteSheet.png", loadGame);
 document.addEventListener("keydown", onKeyDown);
+cvs.addEventListener("click", onCanvasClick);

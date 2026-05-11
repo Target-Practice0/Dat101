@@ -4,15 +4,14 @@
 //------------------------------------------------------------------------------------------
 import { TSprite } from "libSprite";
 import { TPoint } from "lib2d";
-import { GameProps, SheetData, baitIsEaten } from "./game.mjs"
+import { GameProps, SheetData, baitIsEaten } from "./game.mjs";
 import { TBoardCell, EBoardCellInfoType } from "./gameBoard.js";
 
 //------------------------------------------------------------------------------------------
 //----------- variables and object ---------------------------------------------------------
 //------------------------------------------------------------------------------------------
-const ESpriteIndex = {UR: 0, LD: 0, RU: 1, DR: 1, DL: 2, LU: 2, RD: 3, UL: 3, RL: 4, UD: 5};
+const ESpriteIndex = { UR: 0, LD: 0, RU: 1, DR: 1, DL: 2, LU: 2, RD: 3, UL: 3, RL: 4, UD: 5 };
 export const EDirection = { Up: 0, Right: 1, Left: 2, Down: 3 };
-
 
 //-----------------------------------------------------------------------------------------
 //----------- Classes ---------------------------------------------------------------------
@@ -28,13 +27,11 @@ class TSnakePart extends TSprite {
     this.index = this.direction;
   }
 
-  update(){
+  update() {
     this.x = this.boardCell.col * this.spi.width;
     this.y = this.boardCell.row * this.spi.height;
   }
-
 } // class TSnakePart
-
 
 class TSnakeHead extends TSnakePart {
   constructor(aSpriteCanvas, aBoardCell) {
@@ -42,7 +39,7 @@ class TSnakeHead extends TSnakePart {
     this.newDirection = this.direction;
   }
 
- setDirection(aDirection) {
+  setDirection(aDirection) {
     if ((this.direction === EDirection.Right || this.direction === EDirection.Left) && (aDirection === EDirection.Up || aDirection === EDirection.Down)) {
       this.newDirection = aDirection;
     } else if ((this.direction === EDirection.Up || this.direction === EDirection.Down) && (aDirection === EDirection.Right || aDirection === EDirection.Left)) {
@@ -50,8 +47,8 @@ class TSnakeHead extends TSnakePart {
     }
   }
 
-  update(){
-    GameProps.gameBoard.getCell(this.boardCell.row,this.boardCell.col).direction = this.newDirection;
+  update() {
+    GameProps.gameBoard.getCell(this.boardCell.row, this.boardCell.col).direction = this.newDirection;
     switch (this.newDirection) {
       case EDirection.Up:
         this.boardCell.row--;
@@ -75,9 +72,9 @@ class TSnakeHead extends TSnakePart {
     super.update();
     //Check if the snake head is on a bait cell
     const boardCellInfo = GameProps.gameBoard.getCell(this.boardCell.row, this.boardCell.col);
-    if(boardCellInfo.infoType === EBoardCellInfoType.Bait) {
+    if (boardCellInfo.infoType === EBoardCellInfoType.Bait) {
       baitIsEaten();
-    }else{
+    } else {
       /* Decrease the score if the snake head is not on a bait cell */
     }
     boardCellInfo.infoType = EBoardCellInfoType.Snake; // Set the cell to Snake
@@ -86,7 +83,7 @@ class TSnakeHead extends TSnakePart {
 
   checkCollision() {
     let collision = this.boardCell.row < 0 || this.boardCell.row >= GameProps.gameBoard.rows || this.boardCell.col < 0 || this.boardCell.col >= GameProps.gameBoard.cols;
-    if(!collision) {
+    if (!collision) {
       const boardCellInfo = GameProps.gameBoard.getCell(this.boardCell.row, this.boardCell.col);
       collision = boardCellInfo.infoType === EBoardCellInfoType.Snake;
     }
@@ -95,12 +92,12 @@ class TSnakeHead extends TSnakePart {
 }
 
 class TSnakeBody extends TSnakePart {
-  constructor(aSpriteCanvas, aBoardCell ) {
+  constructor(aSpriteCanvas, aBoardCell) {
     super(aSpriteCanvas, SheetData.Body, aBoardCell);
-    this.index = ESpriteIndex.RL;    
+    this.index = ESpriteIndex.RL;
   }
 
-  update(){
+  update() {
     let spriteIndex = ESpriteIndex.RL;
     let boardCellInfo;
     switch (this.direction) {
@@ -174,22 +171,20 @@ class TSnakeBody extends TSnakePart {
     super.update();
   }
 
-  clone(){
+  clone() {
     const newBody = new TSnakeBody(this.spcvs, new TBoardCell(this.boardCell.col, this.boardCell.row));
     newBody.index = this.index;
     newBody.direction = this.direction;
     return newBody;
   }
-
 } // class TSnakeBody
-
 
 class TSnakeTail extends TSnakePart {
   constructor(aSpriteCanvas, aCol, aRow) {
     super(aSpriteCanvas, SheetData.Tail, aCol, aRow);
   }
 
-  update(){
+  update() {
     switch (this.direction) {
       case EDirection.Up:
         this.boardCell.row--;
@@ -210,15 +205,14 @@ class TSnakeTail extends TSnakePart {
     this.index = this.direction;
     super.update();
   }
-
 } // class TSnakeTail
-
 
 export class TSnake {
   #isDead = false;
   #head = null;
   #body = null;
   #tail = null;
+  #newBodyPart = null;
   constructor(aSpriteCanvas, aBoardCell) {
     this.#head = new TSnakeHead(aSpriteCanvas, aBoardCell);
     let col = aBoardCell.col - 1;
@@ -236,16 +230,21 @@ export class TSnake {
   } // draw
 
   //Returns true if the snake is alive
-  update(){
+  update() {
     if (this.#isDead) {
       return false; // Snake is dead, do not continue
     }
-    if(this.#head.update()) {
+    if (this.#head.update()) {
       for (let i = 0; i < this.#body.length; i++) {
         this.#body[i].update();
       }
-      this.#tail.update();  
-    }else if(!this.#isDead){
+      if (this.#newBodyPart) {
+        this.#body.push(this.#newBodyPart);
+        this.#newBodyPart = null;
+      } else {
+        this.#tail.update();
+      }
+    } else if (!this.#isDead) {
       this.#isDead = true;
       return false; // Collision detected, do not continue
     }
@@ -255,4 +254,8 @@ export class TSnake {
   setDirection(aDirection) {
     this.#head.setDirection(aDirection);
   } // setDirection
+
+  grow() {
+      this.#newBodyPart = this.#body[this.#body.length - 1].clone();
+  } // grow the snake by adding a new body part at the position of the last body part
 }
