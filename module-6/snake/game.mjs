@@ -54,6 +54,9 @@ export function newGame() {
   GameProps.bait = new TBait(spcvs); // Initialize bait with a starting position
   GameProps.score = 0; // Reset score
   GameProps.potentialScore = 100;
+  clearInterval(hndUpdateGame); // Clear any existing game update interval
+  gameSpeed = 4; // Reset game speed
+  hndUpdateGame = setInterval(updateGame, 1000 / gameSpeed); // Start game update loop
   if (GameProps.menu) {
     GameProps.menu.setScore(GameProps.score);
   }
@@ -109,7 +112,6 @@ export function loadGame() {
 
   requestAnimationFrame(drawGame);
   console.log("Game canvas is rendering!");
-  hndUpdateGame = setInterval(updateGame, 1000 / gameSpeed); // Update game every 1000ms / gameSpeed
   console.log("Game canvas is updating!");
 }
 
@@ -123,7 +125,7 @@ function drawGame() {
   }
 
   if (GameProps.gameStatus !== EGameStatus.Idle) {
-    GameProps.currentScoreNumber.draw();
+    GameProps.currentScoreNumber.draw(); 
     GameProps.potentialScoreNumber.draw();
   }
 
@@ -154,8 +156,8 @@ function updateGame() {
 
 function increaseGameSpeed() {
   gameSpeed += 0.25; // Increase game speed by 0.25
-  clearInterval(hndUpdateGame); // Clear the existing interval
-  hndUpdateGame = setInterval(updateGame, 1000 / gameSpeed); // Set a new interval with the updated game speed
+  clearInterval(hndUpdateGame); // Clear any existing game update interval
+  hndUpdateGame = setInterval(updateGame, 1000 / gameSpeed); // Start a new game update interval with the new speed
   console.log("Increase game speed!");
   console.log(`Current game speed: ${gameSpeed}`);
 }
@@ -187,8 +189,11 @@ function onKeyDown(event) {
         GameProps.gameStatus = EGameStatus.Playing;
         GameProps.menu.setStatus(EGameStatus.Playing);
         console.log("Game resumed!");
+      } else if (GameProps.gameStatus === EGameStatus.Idle) {
+        newGame();
+        GameProps.gameStatus = EGameStatus.Playing;
       }
-      break;
+      break; // Space key to toggle pause/play or start game from idle
     default:
       console.log(`Key pressed: "${event.key}"`);
   }
@@ -229,7 +234,7 @@ function onCanvasClick(event) {
 }
 
 function isClickOnButton(x, y, button) {
-  return x >= button.x && x <= button.x + button.spi.width && y >= button.y && y <= button.y + button.spi.height;
+  return x >= button.x && x <= button.x + button.spi.width && y >= button.y && y <= button.y + button.spi.height; // Check if the click is within the button
 }
 //-----------------------------------------------------------------------------------------
 //----------- main -----------------------------------------------------------------------
